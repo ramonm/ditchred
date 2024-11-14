@@ -1,3 +1,4 @@
+// Function to extract domain from URL
 function extractDomain(url) {
   try {
     const urlObject = new URL(url);
@@ -7,6 +8,7 @@ function extractDomain(url) {
   }
 }
 
+// Format the last updated time
 function formatLastUpdated(timestamp) {
   if (!timestamp) return 'Never';
   const date = new Date(timestamp);
@@ -23,14 +25,18 @@ function formatLastUpdated(timestamp) {
   return date.toLocaleDateString(undefined, options);
 }
 
+// Update the popup information
 async function updatePopupInfo() {
   const countElement = document.getElementById('domainCount');
   const lastUpdateElement = document.getElementById('lastUpdate');
   
-  countElement.textContent = domainListManager.getDomainCount();
-  lastUpdateElement.textContent = formatLastUpdated(domainListManager.getLastUpdateTime());
+  if (countElement && lastUpdateElement) {
+    countElement.textContent = domainListManager.getDomainCount().toString();
+    lastUpdateElement.textContent = formatLastUpdated(domainListManager.getLastUpdateTime());
+  }
 }
 
+// Handle list refresh
 async function refreshList() {
   const refreshButton = document.getElementById('refreshButton');
   refreshButton.disabled = true;
@@ -39,8 +45,6 @@ async function refreshList() {
     await domainListManager.getDomainList(true); // Force refresh
     await checkCurrentDomain();
     await updatePopupInfo();
-    
-    // Notify background script that list has been updated
     chrome.runtime.sendMessage({ action: 'listUpdated' });
   } catch (error) {
     console.error('Error refreshing list:', error);
@@ -49,27 +53,43 @@ async function refreshList() {
   }
 }
 
+// Check current domain against the list
 async function checkCurrentDomain() {
-  const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
-  const domain = extractDomain(tab.url);
-  const messageDiv = document.getElementById('message');
-  
-  if (domain) {
-    const domainList = await domainListManager.getDomainList();
-    const isListed = domainList.includes(domain);
-    
-    if (isListed) {
-      messageDiv.textContent = `${domain} is on the boycott list`;
-      messageDiv.style.display = 'block';
-    } else {
-      messageDiv.style.display = 'none';
+  try {
+    const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+    const domain = extractDomain(tab.url);
+    const messageDiv = document.getElementById('message');
+    const detailsDiv = document.getElementById('details');
+
+    if (domain) {
+      const domainList = await domainListManager.getDomainList();
+      const isListed = domainList.includes(domain);
+
+      if (isListed) {
+        messageDiv.textContent = `${domain} is on the boycott list`;
+        messageDiv.style.display = 'block';
+        detailsDiv.style.display = 'block';
+      } else {
+        messageDiv.style.display = 'none';
+        detailsDiv.style.display = 'none';
+      }
     }
+  } catch (error) {
+    console.error('Error checking domain:', error);
   }
 }
 
 // Initialize popup
 document.addEventListener('DOMContentLoaded', async () => {
-  document.getElementById('refreshButton').addEventListener('click', refreshList);
-  await checkCurrentDomain();
-  await updatePopupInfo();
+  try {
+    const refreshButton = document.getElementById('refreshButton');
+    if (refreshButton) {
+      refreshButton.addEventListener('click', refreshList);
+    }
+    
+    await checkCurrentDomain();
+    await updatePopupInfo();
+  } catch (error) {
+    console.error('Error initializing popup:', error);
+  }
 });

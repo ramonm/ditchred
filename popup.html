@@ -17,6 +17,15 @@
         color: #c62828;
         font-weight: bold;
       }
+      .details {
+        padding: 15px;
+        margin: 10px 0;
+        border-radius: 5px;
+        background-color: #fff3e0;
+        color: #e65100;
+        font-size: 13px;
+        line-height: 1.4;
+      }
       .info {
         font-size: 12px;
         color: #666;
@@ -47,7 +56,10 @@
     </style>
   </head>
   <body>
-    <div id="message" class="message"></div>
+    <div id="message" class="message" style="display: none;"></div>
+    <div id="details" class="details" style="display: none;">
+      At least one major stakeholder in this company supported a convicted felon for president.
+    </div>
     <div class="info">
       <div>Domains in list: <span id="domainCount">-</span></div>
       <div>Last updated: <span id="lastUpdate">-</span></div>
