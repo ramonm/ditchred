@@ -1,28 +1,72 @@
-// Function to extract domain from URL
 function extractDomain(url) {
   try {
     const urlObject = new URL(url);
-    return urlObject.hostname.toLowerCase();
+    return urlObject.hostname.toLowerCase().replace('www.', '');
   } catch (e) {
     return null;
   }
 }
 
-// Check if domain is in the list
-async function isDomainInList(domain) {
-  const domainList = await domainListManager.getDomainList();
-  return domainList.includes(domain);
+function formatLastUpdated(timestamp) {
+  if (!timestamp) return 'Never';
+  const date = new Date(timestamp);
+  const now = new Date();
+  const diffMinutes = Math.floor((now - date) / 60000);
+
+  if (diffMinutes < 1) return 'Just now';
+  if (diffMinutes < 60) return `${diffMinutes}m ago`;
+  
+  const diffHours = Math.floor(diffMinutes / 60);
+  if (diffHours < 24) return `${diffHours}h ago`;
+  
+  const options = { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' };
+  return date.toLocaleDateString(undefined, options);
 }
 
-// Get the current tab's URL and check the domain
-chrome.tabs.query({active: true, currentWindow: true}, async function(tabs) {
-  const url = tabs[0].url;
-  const domain = extractDomain(url);
+async function updatePopupInfo() {
+  const countElement = document.getElementById('domainCount');
+  const lastUpdateElement = document.getElementById('lastUpdate');
+  
+  countElement.textContent = domainListManager.getDomainCount();
+  lastUpdateElement.textContent = formatLastUpdated(domainListManager.getLastUpdateTime());
+}
+
+async function refreshList() {
+  const refreshButton = document.getElementById('refreshButton');
+  refreshButton.disabled = true;
+  
+  try {
+    await domainListManager.getDomainList(true); // Force refresh
+    await checkCurrentDomain();
+    await updatePopupInfo();
+  } catch (error) {
+    console.error('Error refreshing list:', error);
+  } finally {
+    refreshButton.disabled = false;
+  }
+}
+
+async function checkCurrentDomain() {
+  const [tab] = await chrome.tabs.query({active: true, currentWindow: true});
+  const domain = extractDomain(tab.url);
   const messageDiv = document.getElementById('message');
   
-  if (domain && await isDomainInList(domain)) {
-    messageDiv.textContent = `${domain} is on the boycott list`;
-  } else {
-    messageDiv.style.display = 'none';
+  if (domain) {
+    const domainList = await domainListManager.getDomainList();
+    const isListed = domainList.includes(domain);
+    
+    if (isListed) {
+      messageDiv.textContent = `${domain} is on the boycott list`;
+      messageDiv.style.display = 'block';
+    } else {
+      messageDiv.style.display = 'none';
+    }
   }
+}
+
+// Initialize popup
+document.addEventListener('DOMContentLoaded', async () => {
+  document.getElementById('refreshButton').addEventListener('click', refreshList);
+  await checkCurrentDomain();
+  await updatePopupInfo();
 });

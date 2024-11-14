@@ -3,11 +3,11 @@ class DomainListManager {
     this.domainList = [];
     this.lastFetch = 0;
     this.cacheValidityDuration = 60 * 60 * 1000; // 1 hour in milliseconds
-    this.listUrl = 'https://raw.githubusercontent.com/ramonm/ditchred/refs/heads/main/domains.json';
+    this.listUrl = 'https://raw.githubusercontent.com/ramonm/ditchred/main/domains.json';
   }
 
-  async getDomainList() {
-    if (this.shouldRefreshCache()) {
+  async getDomainList(forceRefresh = false) {
+    if (forceRefresh || this.shouldRefreshCache()) {
       try {
         const response = await fetch(this.listUrl, {
           cache: 'no-store',
@@ -15,16 +15,24 @@ class DomainListManager {
             'Accept': 'application/json'
           }
         });
-        if (!response.ok) throw new Error('Network response was not ok');
+        
+        if (!response.ok) {
+          throw new Error(`HTTP error! status: ${response.status}`);
+        }
+        
         const data = await response.json();
+        
+        if (!data || !data.domains) {
+          throw new Error('Invalid data format');
+        }
+        
         this.domainList = data.domains;
         this.lastFetch = Date.now();
       } catch (error) {
-        console.error('Error fetching domain list:', error);
-        // Use cached list if available, otherwise use empty list
         if (this.domainList.length === 0) {
           this.domainList = [];
         }
+        throw error;
       }
     }
     return this.domainList;
@@ -32,6 +40,14 @@ class DomainListManager {
 
   shouldRefreshCache() {
     return Date.now() - this.lastFetch > this.cacheValidityDuration;
+  }
+
+  getLastUpdateTime() {
+    return this.lastFetch;
+  }
+
+  getDomainCount() {
+    return this.domainList.length;
   }
 }
 
