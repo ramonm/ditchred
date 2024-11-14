@@ -3,7 +3,7 @@ class DomainListManager {
     this.domainList = [];
     this.lastFetch = 0;
     this.cacheValidityDuration = 60 * 60 * 1000; // 1 hour in milliseconds
-    this.listUrl = 'https://raw.githubusercontent.com/YOUR_USERNAME/YOUR_REPO/main/domains.json';
+    this.listUrl = 'https://raw.githubusercontent.com/ramonm/ditchred/refs/heads/main/domains.json';
   }
 
   async getDomainList() {
