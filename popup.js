@@ -39,6 +39,9 @@ async function refreshList() {
     await domainListManager.getDomainList(true); // Force refresh
     await checkCurrentDomain();
     await updatePopupInfo();
+    
+    // Notify background script that list has been updated
+    chrome.runtime.sendMessage({ action: 'listUpdated' });
   } catch (error) {
     console.error('Error refreshing list:', error);
   } finally {

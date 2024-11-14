@@ -2,7 +2,7 @@ class DomainListManager {
   constructor() {
     this.domainList = [];
     this.lastFetch = 0;
-    this.cacheValidityDuration = 60 * 60 * 1000; // 1 hour in milliseconds
+    this.cacheValidityDuration = 60 * 60 * 1000;
     this.listUrl = 'https://raw.githubusercontent.com/ramonm/ditchred/main/domains.json';
   }
 
@@ -16,22 +16,14 @@ class DomainListManager {
           }
         });
         
-        if (!response.ok) {
-          throw new Error(`HTTP error! status: ${response.status}`);
-        }
-        
+        if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
         const data = await response.json();
-        
-        if (!data || !data.domains) {
-          throw new Error('Invalid data format');
-        }
+        if (!data || !data.domains) throw new Error('Invalid data format');
         
         this.domainList = data.domains;
         this.lastFetch = Date.now();
       } catch (error) {
-        if (this.domainList.length === 0) {
-          this.domainList = [];
-        }
+        if (this.domainList.length === 0) this.domainList = [];
         throw error;
       }
     }
