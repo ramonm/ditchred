@@ -2,7 +2,7 @@
   "manifest_version": 3,
   "name": "Ditch Red",
   "version": "1.0",
-  "description": "This extetion helps you identify and ditch the companies that donate to red candidates.",
+  "description": "This extention helps you identify and ditch the companies that donate to red candidates.",
   "permissions": [
     "activeTab",
     "scripting",
