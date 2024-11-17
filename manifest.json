@@ -2,10 +2,8 @@
   "manifest_version": 3,
   "name": "Ditch Red",
   "version": "1.0",
-  "description": "This extention helps you identify and ditch the companies that donate to red candidates.",
+  "description": "This extension helps you identify and ditch the companies that donate to red candidates.",
   "permissions": [
-    "activeTab",
-    "scripting",
     "tabs"
   ],
   "host_permissions": [
@@ -21,5 +19,10 @@
   },
   "background": {
     "service_worker": "background.js"
+  },
+  "icons": {
+    "16": "images/icon-inactive16.png",
+    "48": "images/icon-inactive48.png",
+    "128": "images/icon-inactive128.png"
   }
 }
